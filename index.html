@@ -1,595 +1,634 @@
-import React, { useState } from 'react';
-import { 
-  School, 
-  Stethoscope, 
-  Briefcase, 
-  Globe, 
-  HelpCircle, 
-  ArrowRight, 
-  CheckCircle, 
-  BookOpen, 
-  Code, 
-  Baby, 
-  Palette, 
-  Utensils, 
-  Dog, 
-  Dumbbell, 
-  ArrowLeft,
-  GraduationCap,
-  Building,
-  Calculator,
-  FlaskConical,
-  ScrollText,
-  TrendingUp,
-  Landmark,
-  Languages,
-  Monitor,
-  Music,
-  Star,
-  Sprout, 
-  HeartHandshake,
-  Database, // 追加: データベース用
-  Newspaper // 追加: 時事問題用
-} from 'lucide-react';
-
-// --- データ定義 ---
-
-// 階層構造データ
-const CAREER_PATHS = [
-  {
-    id: 'university',
-    label: '大学進学',
-    icon: <School className="w-6 h-6" />,
-    description: "4年制大学への進学を希望",
-    subOptions: [
-      { 
-        id: 'uni_science', 
-        label: '理系', 
-        icon: <Code className="w-5 h-5" />,
-        description: "科学技術や数学的分野",
-        subOptions: [
-            { id: 'uni_sci_chem', label: '化学系', icon: <FlaskConical className="w-5 h-5" /> },
-            { id: 'uni_sci_info', label: '情報系', icon: <Monitor className="w-5 h-5" /> },
-            { id: 'uni_sci_bio', label: '生物・医療系', icon: <Stethoscope className="w-5 h-5" /> },
-            { id: 'uni_sci_arch', label: '建築系', icon: <Building className="w-5 h-5" /> },
-            { id: 'uni_sci_math', label: '数学系', icon: <Calculator className="w-5 h-5" /> },
-            { id: 'uni_sci_other', label: 'その他・未定', icon: <HelpCircle className="w-5 h-5" /> },
-        ]
-      },
-      { 
-        id: 'uni_arts', 
-        label: '文系', 
-        icon: <BookOpen className="w-5 h-5" />,
-        description: "人文・社会科学・芸術分野",
-        subOptions: [
-            { id: 'uni_art_arts', label: '芸術系', icon: <Palette className="w-5 h-5" /> },
-            { id: 'uni_art_hist', label: '歴史系', icon: <ScrollText className="w-5 h-5" /> },
-            { id: 'uni_art_econ', label: '経済系', icon: <TrendingUp className="w-5 h-5" /> },
-            { id: 'uni_art_mgmt', label: '経営系', icon: <Landmark className="w-5 h-5" /> },
-            { id: 'uni_art_law', label: '法学・社会学系', icon: <Newspaper className="w-5 h-5" /> }, // 追加: 法学系
-            { id: 'uni_art_lang', label: '語学系', icon: <Languages className="w-5 h-5" /> },
-            { id: 'uni_art_child', label: '保育・教育系', icon: <Baby className="w-5 h-5" /> },
-            { id: 'uni_art_welfare', label: '福祉系', icon: <HeartHandshake className="w-5 h-5" /> },
-            { id: 'uni_art_biz', label: 'ビジネス系', icon: <Briefcase className="w-5 h-5" /> },
-            { id: 'uni_art_other', label: 'その他・未定', icon: <HelpCircle className="w-5 h-5" /> },
-        ]
-      },
-      { id: 'uni_undecided', label: '文理未定', icon: <HelpCircle className="w-5 h-5" />, description: "まだ迷っている" },
-    ]
-  },
-  {
-    id: 'vocational',
-    label: '専門学校進学',
-    icon: <Stethoscope className="w-6 h-6" />,
-    description: "職業スキルを身につける",
-    subOptions: [
-      { id: 'voc_nursing', label: '看護・医療系', icon: <Stethoscope className="w-5 h-5" /> },
-      { id: 'voc_sports', label: 'スポーツ系', icon: <Dumbbell className="w-5 h-5" /> },
-      { id: 'voc_animal', label: '動物系', icon: <Dog className="w-5 h-5" /> },
-      { id: 'voc_childcare', label: '保育系', icon: <Baby className="w-5 h-5" /> },
-      { id: 'voc_welfare', label: '介護・福祉系', icon: <HeartHandshake className="w-5 h-5" /> },
-      { id: 'voc_it', label: '情報系', icon: <Code className="w-5 h-5" /> },
-      { id: 'voc_language', label: '語学系', icon: <Globe className="w-5 h-5" /> },
-      { id: 'voc_cooking', label: '調理・食品系', icon: <Utensils className="w-5 h-5" /> },
-      { id: 'voc_fashion', label: '服飾・デザイン系', icon: <Palette className="w-5 h-5" /> },
-      { id: 'voc_other', label: 'その他', icon: <Palette className="w-5 h-5" /> },
-    ]
-  },
-  {
-    id: 'college',
-    label: '短大進学',
-    icon: <GraduationCap className="w-6 h-6" />,
-    description: "短期大学での学び",
-    subOptions: [
-      { id: 'col_childcare', label: '保育系', icon: <Baby className="w-5 h-5" /> },
-      { id: 'col_nutrition', label: '栄養・家政系', icon: <Utensils className="w-5 h-5" /> },
-      { id: 'col_language', label: '語学系', icon: <Globe className="w-5 h-5" /> },
-      { id: 'col_biz', label: 'ビジネス・実務系', icon: <Briefcase className="w-5 h-5" /> }, // 追加
-      { id: 'col_other', label: 'その他', icon: <School className="w-5 h-5" /> },
-    ]
-  },
-  {
-    id: 'job',
-    label: '就職',
-    icon: <Briefcase className="w-6 h-6" />,
-    description: "高校卒業後に働く",
-  },
-  {
-    id: 'study_abroad',
-    label: '留学',
-    icon: <Globe className="w-6 h-6" />,
-    description: "海外の学校へ",
-  },
-  {
-    id: 'undecided',
-    label: 'まだ決まっていない',
-    icon: <HelpCircle className="w-6 h-6" />,
-    description: "将来を模索中",
-  },
-];
-
-// 結果データ
-const RESULTS = {
-  // --- 大学・理系 ---
-  uni_sci_chem: {
-    title: "大学 理系（化学系）",
-    color: "bg-blue-100 text-blue-900 border-blue-200",
-    basics: ["化学", "数学(II・B・III)", "物理", "英語"],
-    electives: ["農業と環境", "情報処理", "中国語Ⅰ"],
-    advice: "実験データの分析にPCスキルは必須なので「情報処理」は役立ちます。バイオ系なら「農業と環境」も親和性が高いです。",
-  },
-  uni_sci_info: {
-    title: "大学 理系（情報系）",
-    color: "bg-cyan-100 text-cyan-900 border-cyan-200",
-    basics: ["数学(II・B・III)", "情報", "物理"],
-    electives: ["データベース", "情報処理", "情報デザイン", "工芸Ⅰ"],
-    advice: "文句なしに「データベース」「情報処理」が直結します。UI/UX（使いやすさ）の観点から「情報デザイン」や「工芸」も強力な武器になります。",
-  },
-  uni_sci_bio: {
-    title: "大学 理系（生物・医療系）",
-    color: "bg-teal-100 text-teal-900 border-teal-200",
-    basics: ["生物", "化学", "数学", "英語"],
-    electives: ["倫理", "社会福祉基礎", "農業と環境", "情報処理"],
-    advice: "医療系に進むなら生命倫理（バイオエシックス）に関わる「倫理」と、病院の電子カルテ等を扱うための「情報処理」は意外な盲点ですが重要です。",
-  },
-  uni_sci_arch: {
-    title: "大学 理系（建築系）",
-    color: "bg-orange-100 text-orange-900 border-orange-200",
-    basics: ["数学(II・B・III)", "物理", "英語"],
-    electives: ["素描", "美術Ⅱ", "情報デザイン", "工芸Ⅰ"],
-    advice: "CAD（設計ソフト）を使う上で「情報デザイン」の知識は役立ちます。そして何より「素描」で空間把握能力を鍛えましょう。",
-  },
-  uni_sci_math: {
-    title: "大学 理系（数学系）",
-    color: "bg-indigo-100 text-indigo-900 border-indigo-200",
-    basics: ["数学(全て)", "物理", "英語"],
-    electives: ["情報処理", "データベース", "演奏研究"],
-    advice: "現代数学はコンピュータと密接です。「データベース」や「情報処理」でアルゴリズム的思考に触れておきましょう。",
-  },
-  uni_sci_other: {
-    title: "大学 理系（その他・未定）",
-    color: "bg-blue-50 text-blue-900 border-blue-200",
-    basics: ["数学(II・B)", "理科2科目", "英語"],
-    electives: ["情報処理", "時事問題", "農業と環境"],
-    advice: "理系的な解決能力を社会課題にどう活かすかを知るために「時事問題」は良い刺激になります。",
-  },
-
-  // --- 大学・文系 ---
-  uni_art_arts: {
-    title: "大学 文系（芸術系）",
-    color: "bg-fuchsia-100 text-fuchsia-900 border-fuchsia-200",
-    basics: ["国語", "英語", "世界史"],
-    electives: ["素描", "美術Ⅲ", "演奏研究", "書道Ⅲ", "情報デザイン"],
-    advice: "デジタルアートの需要が高まっているので、実技科目に加えて「情報デザイン」を履修しておくと進路の幅が大きく広がります。",
-  },
-  uni_art_hist: {
-    title: "大学 文系（歴史系）",
-    color: "bg-amber-100 text-amber-900 border-amber-200",
-    basics: ["世界史/日本史", "地理", "古典"],
-    electives: ["日本史研究", "世界史研究", "書道Ⅱ", "倫理"],
-    advice: "「日本史研究」「世界史研究」は必須です。思想史を理解するための「倫理」、古文書解読のための「書道」も完璧な布陣です。",
-  },
-  uni_art_econ: {
-    title: "大学 文系（経済系）",
-    color: "bg-emerald-100 text-emerald-900 border-emerald-200",
-    basics: ["数学(I・A・II・B)", "政治経済", "英語"],
-    electives: ["簿記", "ビジネス基礎", "時事問題", "情報処理"],
-    advice: "大学の経済学部では「簿記」の単位認定があることも。統計データを扱うための「情報処理」も必須スキルです。",
-  },
-  uni_art_mgmt: {
-    title: "大学 文系（経営系）",
-    color: "bg-emerald-50 text-emerald-900 border-emerald-200",
-    basics: ["英語", "政治経済", "数学"],
-    electives: ["ビジネス基礎", "簿記", "情報デザイン", "時事問題"],
-    advice: "マーケティングには「情報デザイン」、会計には「簿記」、企業戦略には「ビジネス基礎」と、これ以上ないほど選択科目が活きる分野です。",
-  },
-  uni_art_law: { // 新設
-    title: "大学 文系（法学・社会学系）",
-    color: "bg-stone-100 text-stone-900 border-stone-200",
-    basics: ["国語", "政治経済", "英語", "日本史"],
-    electives: ["時事問題", "倫理", "社会福祉基礎", "情報処理"],
-    advice: "法律は倫理観の上に成り立っています。「倫理」や、現代社会の課題を知る「時事問題」「社会福祉基礎」が法的思考の土台になります。",
-  },
-  uni_art_lang: {
-    title: "大学 文系（語学系）",
-    color: "bg-rose-100 text-rose-900 border-rose-200",
-    basics: ["英語", "国語", "世界史"],
-    electives: ["時事問題", "世界史研究", "ハングルⅠ", "フランス語Ⅰ"],
-    advice: "翻訳や通訳は、その国の今の情勢を知らないとできません。「時事問題」や「世界史研究」で背景知識を強化しましょう。",
-  },
-  uni_art_child: {
-    title: "大学 文系（保育・教育系）",
-    color: "bg-pink-100 text-pink-900 border-pink-200",
-    basics: ["国語", "家庭科"],
-    electives: ["保育基礎", "幼児教育音楽", "社会福祉基礎", "倫理"],
-    advice: "教育とは人を導くことです。「倫理」で道徳的価値観を、そして「保育基礎」「幼児教育音楽」で実践力を身につけましょう。",
-  },
-  uni_art_welfare: {
-    title: "大学 文系（福祉系）",
-    color: "bg-green-100 text-green-900 border-green-200",
-    basics: ["国語", "家庭科", "公民"],
-    electives: ["社会福祉基礎", "介護福祉基礎", "倫理", "時事問題"],
-    advice: "福祉制度は国の政策と直結するため「時事問題」への感度が重要です。「倫理」で生命の尊厳についても深く考えましょう。",
-  },
-  uni_art_biz: {
-    title: "大学 文系（ビジネス系）",
-    color: "bg-slate-100 text-slate-900 border-slate-200",
-    basics: ["英語", "情報", "政治経済"],
-    electives: ["ビジネス基礎", "簿記", "情報処理", "時事問題"],
-    advice: "「ビジネス基礎」と「簿記」は高校で履修しておくと大学で圧倒的に楽になります。即戦力コースです。",
-  },
-  uni_art_other: {
-    title: "大学 文系（その他・未定）",
-    color: "bg-red-50 text-red-900 border-red-200",
-    basics: ["英語", "国語", "地歴公民"],
-    electives: ["時事問題", "情報処理", "書道Ⅱ"],
-    advice: "どの分野でも通用する「情報処理」と、小論文対策にもなる「時事問題」は取っておいて損はありません。",
-  },
-
-  // --- 大学・未定 ---
-  uni_undecided: {
-    title: "大学進学（文理未定）",
-    color: "bg-purple-100 text-purple-900 border-purple-200",
-    basics: ["英語", "数学(I・A・II)", "国語"],
-    electives: ["情報処理", "時事問題", "簿記"],
-    advice: "「情報処理」や「簿記」は資格取得にも繋がり、進路が決まった後にどんな分野でも武器になる汎用性の高いスキルです。",
-  },
-  
-  // --- 専門学校 ---
-  voc_nursing: {
-    title: "専門学校（看護・医療系）",
-    color: "bg-teal-100 text-teal-900 border-teal-200",
-    basics: ["生物基礎・生物", "数学I・A", "現代文"],
-    electives: ["倫理", "情報処理", "介護福祉基礎", "社会福祉基礎"],
-    advice: "医療現場のIT化に伴い「情報処理」能力が求められています。また、患者さんの命に向き合うための「倫理」も非常に重要です。",
-  },
-  voc_sports: {
-    title: "専門学校（スポーツ系）",
-    color: "bg-orange-100 text-orange-900 border-orange-200",
-    basics: ["体育", "生物基礎", "保健"],
-    electives: ["スポーツトレーナー学入門", "スポーツⅡ", "ビジネス基礎"],
-    advice: "将来ジムの経営やフリーランスを考えるなら「ビジネス基礎」が役立ちます。体だけでなく経営感覚も養いましょう。",
-  },
-  voc_animal: {
-    title: "専門学校（動物系）",
-    color: "bg-amber-100 text-amber-900 border-amber-200",
-    basics: ["生物", "化学基礎", "家庭科"],
-    electives: ["農業と環境", "ビジネス基礎", "素描"],
-    advice: "ペットショップやサロン勤務を見据え、接客や店舗運営の基礎として「ビジネス基礎」をおすすめします。",
-  },
-  voc_childcare: {
-    title: "専門学校（保育系）",
-    color: "bg-pink-100 text-pink-900 border-pink-200",
-    basics: ["国語", "家庭科"],
-    electives: ["保育基礎", "幼児教育音楽", "服飾手芸", "情報デザイン"],
-    advice: "おたより作成や掲示物作りのために「情報デザイン」のスキルがあると、現場で重宝される「DX対応できる保育士」になれます。",
-  },
-  voc_welfare: {
-    title: "専門学校（介護・福祉系）",
-    color: "bg-green-100 text-green-900 border-green-200",
-    basics: ["国語", "家庭科", "公民"],
-    electives: ["介護福祉基礎", "社会福祉基礎", "倫理", "情報処理"],
-    advice: "ケアプラン作成や記録業務でPCは必須です。「情報処理」を学んでおきましょう。「倫理」はケアの根幹です。",
-  },
-  voc_it: {
-    title: "専門学校（情報系）",
-    color: "bg-cyan-100 text-cyan-900 border-cyan-200",
-    basics: ["情報", "数学", "英語"],
-    electives: ["データベース", "情報処理", "情報デザイン", "ビジネス基礎"],
-    advice: "「データベース」はシステム開発の要です。「ビジネス基礎」で企業の業務フローを知っておくと、使えるシステムが作れるようになります。",
-  },
-  voc_language: {
-    title: "専門学校（語学系）",
-    color: "bg-indigo-100 text-indigo-900 border-indigo-200",
-    basics: ["英語", "国語", "世界史"],
-    electives: ["ハングルⅠ", "中国語Ⅰ", "情報処理", "ビジネス基礎"],
-    advice: "語学力×ITスキル×ビジネス知識＝最強です。「情報処理」と「ビジネス基礎」を組み合わせると就職率が跳ね上がります。",
-  },
-  voc_cooking: {
-    title: "専門学校（調理・食品系）",
-    color: "bg-yellow-100 text-yellow-900 border-yellow-200",
-    basics: ["家庭科", "化学基礎"],
-    electives: ["フードデザイン", "ビジネス基礎", "簿記"],
-    advice: "将来自分の店を持ちたいなら「簿記」と「ビジネス基礎」は必須です。料理の腕と同じくらい、原価計算や経営の知識が大切です。",
-  },
-  voc_fashion: {
-    title: "専門学校（服飾・デザイン系）",
-    color: "bg-violet-100 text-violet-900 border-violet-200",
-    basics: ["家庭科", "美術"],
-    electives: ["情報デザイン", "服飾手芸", "素描", "ビジネス基礎"],
-    advice: "現代のデザインはデジタルが主流。「情報デザイン」は必須です。自分のブランドを持つ夢があるなら「ビジネス基礎」も。",
-  },
-  voc_other: {
-    title: "専門学校（その他）",
-    color: "bg-gray-100 text-gray-900 border-gray-200",
-    basics: ["総合的な探究", "英語"],
-    electives: ["ビジネス基礎", "情報処理", "書道Ⅱ"],
-    advice: "社会人としての基礎体力となる「ビジネス基礎」と「情報処理」を選べば間違いありません。",
-  },
-
-  // --- 短大 ---
-  col_childcare: {
-    title: "短大（保育系）",
-    color: "bg-pink-100 text-pink-900 border-pink-200",
-    basics: ["国語", "英語", "家庭科"],
-    electives: ["保育基礎", "幼児教育音楽", "情報デザイン"],
-    advice: "短期間で即戦力になるため、ピアノ（幼児教育音楽）に加え、園だより作成などに役立つ「情報デザイン」がおすすめです。",
-  },
-  col_nutrition: {
-    title: "短大（栄養・家政系）",
-    color: "bg-orange-50 text-orange-900 border-orange-200",
-    basics: ["化学基礎", "生物基礎", "家庭科"],
-    electives: ["フードデザイン", "情報処理", "データベース"],
-    advice: "栄養管理はデータ管理です。献立作成や栄養価計算のために「データベース」や「情報処理」の知識があると非常にスムーズです。",
-  },
-  col_language: {
-    title: "短大（語学系）",
-    color: "bg-indigo-100 text-indigo-900 border-indigo-200",
-    basics: ["英語", "国語", "世界史"],
-    electives: ["ハングルⅠ", "ビジネス基礎", "情報処理"],
-    advice: "短大卒業後の就職を見据え、語学に加えて事務職スキルの「ビジネス基礎」「情報処理」をセットで履修しましょう。",
-  },
-  col_biz: { // 新設
-    title: "短大（ビジネス・実務系）",
-    color: "bg-slate-200 text-slate-900 border-slate-300",
-    basics: ["英語", "国語", "情報"],
-    electives: ["簿記", "ビジネス基礎", "情報処理", "データベース"],
-    advice: "事務職や秘書を目指すならこの4つが鉄板です。高校のうちに資格を取っておくと短大での学びがより高度になります。",
-  },
-  col_other: {
-    title: "短大（その他）",
-    color: "bg-gray-100 text-gray-900 border-gray-200",
-    basics: ["国語", "英語", "社会"],
-    electives: ["ビジネス基礎", "情報処理", "書道Ⅱ"],
-    advice: "「ビジネス基礎」と「情報処理」は、どんな職種に就くとしてもあなたの助けになります。",
-  },
-
-  // --- その他直結ルート ---
-  job: {
-    title: "就職",
-    color: "bg-emerald-100 text-emerald-900 border-emerald-200",
-    basics: ["国語（作文・敬語）", "数学（SPI対策）", "情報"],
-    electives: ["ビジネス基礎", "簿記", "情報処理", "時事問題"],
-    advice: "社会人のマナーとルールを学ぶ「ビジネス基礎」、お金の流れを知る「簿記」、PCスキルの「情報処理」。これらは就職活動での強力なアピール材料になります。",
-  },
-  study_abroad: {
-    title: "留学",
-    color: "bg-sky-100 text-sky-900 border-sky-200",
-    basics: ["英語（4技能）", "日本史/国語"],
-    electives: ["日本史研究", "書道Ⅱ", "時事問題", "情報デザイン"],
-    advice: "海外で日本について語るため「日本史研究」は必須。また、プレゼン資料作成のために「情報デザイン」のスキルがあると海外の大学でも役立ちます。",
-  },
-  undecided: {
-    title: "まだ決まっていない",
-    color: "bg-slate-100 text-slate-900 border-slate-200",
-    basics: ["英語", "数学", "国語"],
-    electives: ["情報処理", "ビジネス基礎", "時事問題", "フードデザイン"],
-    advice: "迷ったら「生きる力（フードデザイン）」と「働く力（ビジネス基礎・情報処理）」を身につけておきましょう。これらは決して裏切りません。",
-  },
-};
-
-
-export default function SubjectSelectorApp() {
-  const [history, setHistory] = useState([]);
-  const [finalResult, setFinalResult] = useState(null);
-
-  const getCurrentOptions = () => {
-    if (history.length === 0) {
-      return CAREER_PATHS;
-    }
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>選択科目ナビ</title>
     
-    let currentLevel = CAREER_PATHS;
-    for (const id of history) {
-      const found = currentLevel.find(opt => opt.id === id);
-      if (found && found.subOptions) {
-        currentLevel = found.subOptions;
-      } else {
-        return [];
-      }
-    }
-    return currentLevel;
-  };
-
-  const handleSelect = (option) => {
-    if (option.subOptions && option.subOptions.length > 0) {
-      setHistory([...history, option.id]);
-    } else {
-      setFinalResult(option.id);
-    }
-  };
-
-  const handleBack = () => {
-    if (finalResult) {
-      setFinalResult(null);
-    } else {
-      setHistory(history.slice(0, -1));
-    }
-  };
-
-  const resetApp = () => {
-    setHistory([]);
-    setFinalResult(null);
-  };
-
-  const getBreadcrumbs = () => {
-    let crumbs = [];
-    let currentLevel = CAREER_PATHS;
+    <!-- React & ReactDOM -->
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
     
-    for (const id of history) {
-      const found = currentLevel.find(opt => opt.id === id);
-      if (found) {
-        crumbs.push(found.label);
-        if (found.subOptions) currentLevel = found.subOptions;
-      }
-    }
-    return crumbs;
-  };
+    <!-- Babel (JSX変換用) -->
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <style>
+        body { background-color: #f9fafb; font-family: sans-serif; }
+    </style>
+</head>
+<body>
+    <div id="root"></div>
 
-  const currentOptions = getCurrentOptions();
-  const breadcrumbs = getBreadcrumbs();
+    <script type="text/babel">
+        const { useState } = React;
 
-  if (finalResult) {
-    const result = RESULTS[finalResult];
-    if (!result) return <div className="p-8 text-center text-red-500">エラー: データが見つかりません ({finalResult})</div>;
+        // --- アイコンコンポーネント定義 (Lucide風SVG) ---
+        // 依存関係をなくすため、SVGを直接定義しています
+        const IconBase = ({ children, className = "w-6 h-6", ...props }) => (
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className} {...props}>{children}</svg>
+        );
 
-    return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center font-sans p-4">
-        <div className="w-full max-w-md animate-in zoom-in duration-300">
-          <div className={`rounded-t-3xl p-6 ${result.color} border-b-2 shadow-sm`}>
-             <div className="flex justify-between items-start mb-2">
-               <span className="bg-white/60 backdrop-blur-sm px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider shadow-sm">
-                 診断結果
-               </span>
-             </div>
-             <h2 className="text-2xl font-bold mt-2">{result.title}</h2>
-          </div>
-  
-          <div className="bg-white rounded-b-3xl shadow-xl p-6 mb-6 overflow-hidden">
+        const School = (p) => <IconBase {...p}><path d="m4 6 8-4 8 4"/><path d="m18 10 4 2v8a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2v-8l4-2"/><path d="M14 22v-4a2 2 0 0 0-2-2v0a2 2 0 0 0-2 2v4"/><path d="M18 5v17"/><path d="M6 5v17"/></IconBase>;
+        const Stethoscope = (p) => <IconBase {...p}><path d="M4.8 2.3A.3.3 0 1 0 5 2H4a2 2 0 0 0-2 2v5a6 6 0 0 0 6 6v0a6 6 0 0 0 6-6V4a2 2 0 0 0-2-2h-1a.2.2 0 1 0 .3.3"/><path d="M8 15v6a2 2 0 0 0 2 2v0a2 2 0 0 0 2-2v-6"/><circle cx="12" cy="2" r="2"/></IconBase>;
+        const Briefcase = (p) => <IconBase {...p}><rect width="20" height="14" x="2" y="7" rx="2" ry="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></IconBase>;
+        const Globe = (p) => <IconBase {...p}><circle cx="12" cy="12" r="10"/><path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20"/><path d="M2 12h20"/></IconBase>;
+        const HelpCircle = (p) => <IconBase {...p}><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><path d="M12 17h.01"/></IconBase>;
+        const ArrowRight = (p) => <IconBase {...p}><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></IconBase>;
+        const ArrowLeft = (p) => <IconBase {...p}><path d="m12 19-7-7 7-7"/><path d="M19 12H5"/></IconBase>;
+        const CheckCircle = (p) => <IconBase {...p}><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><path d="m9 11 3 3L22 4"/></IconBase>;
+        const BookOpen = (p) => <IconBase {...p}><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 1-4 4v14a3 3 0 0 0 3-3h7z"/></IconBase>;
+        const Code = (p) => <IconBase {...p}><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></IconBase>;
+        const Baby = (p) => <IconBase {...p}><path d="M9 12h.01"/><path d="M15 12h.01"/><path d="M10 16c.5.3 1.2.5 2 .5s1.5-.2 2-.5"/><path d="M19 6.3a9 9 0 0 1 1.8 3.9 2 2 0 0 1 0 3.6 9 9 0 0 1-17.6 0 2 2 0 0 1 0-3.6A9 9 0 0 1 12 3c2 0 3.5 1.1 3.5 2.5s-.9 2.5-2 2.5c-.8 0-1.5-.4-1.5-1"/></IconBase>;
+        const Palette = (p) => <IconBase {...p}><circle cx="13.5" cy="6.5" r=".5"/><circle cx="17.5" cy="10.5" r=".5"/><circle cx="8.5" cy="7.5" r=".5"/><circle cx="6.5" cy="12.5" r=".5"/><path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10c.926 0 1.648-.746 1.648-1.688 0-.437-.18-.835-.437-1.125-.29-.289-.438-.652-.438-1.125a1.64 1.64 0 0 1 1.668-1.668h1.996c3.051 0 5.555-2.503 5.555-5.554C21.965 6.012 17.461 2 12 2z"/></IconBase>;
+        const Utensils = (p) => <IconBase {...p}><path d="M3 2v7c0 1.1.9 2 2 2h4a2 2 0 0 0 2-2V2"/><path d="M7 2v20"/><path d="M21 15V2v0a5 5 0 0 0-5 5v6c0 1.1.9 2 2 2h3Zm0 0v7"/></IconBase>;
+        const Dog = (p) => <IconBase {...p}><path d="M10 5.172C10 3.782 8.423 2.679 6.5 3c-2.823.47-4.113 6.006-4 7 .08.703 1.725 1.722 3.656 1 1.261-.472 1.96-1.45 2.344-2.5"/><path d="M14.267 5.172c0-1.39 1.577-2.493 3.5-2.172 2.823.47 4.113 6.006 4 7-.08.703-1.725 1.722-3.656 1-1.261-.472-1.96-1.45-2.344-2.5"/><path d="M8 14v.5"/><path d="M16 14v.5"/><path d="M11.25 16.25h1.5L12 17l-.75-.75Z"/><path d="M4.42 11.247A4.31 4.31 0 0 1 4 10a4.31 4.31 0 0 1 4.33-4.33A4.31 4.31 0 0 1 12.66 10a4.31 4.31 0 0 1-4.33 4.33A4.31 4.31 0 0 1 4.42 11.247"/></IconBase>;
+        const Dumbbell = (p) => <IconBase {...p}><path d="m6.5 6.5 11 11"/><path d="m21 21-1-1"/><path d="m3 3 1 1"/><path d="m18 22 4-4"/><path d="m2 6 4-4"/><path d="m3 10 7-7"/><path d="m14 21 7-7"/></IconBase>;
+        const GraduationCap = (p) => <IconBase {...p}><path d="M21.42 10.922a1 1 0 0 0-.019-1.838L12.83 5.18a2 2 0 0 0-1.66 0L2.6 9.08a1 1 0 0 0 0 1.832l8.57 3.908a2 2 0 0 0 1.66 0z"/><path d="M22 10v6"/><path d="M6 12.5V16a6 3 0 0 0 12 0v-3.5"/></IconBase>;
+        const Building = (p) => <IconBase {...p}><rect width="16" height="20" x="4" y="2" rx="2" ry="2"/><path d="M9 22v-4h6v4"/><path d="M8 6h.01"/><path d="M16 6h.01"/><path d="M12 6h.01"/><path d="M12 10h.01"/><path d="M12 14h.01"/><path d="M16 10h.01"/><path d="M16 14h.01"/><path d="M8 10h.01"/><path d="M8 14h.01"/></IconBase>;
+        const Calculator = (p) => <IconBase {...p}><rect width="16" height="20" x="4" y="2" rx="2"/><line x1="8" x2="16" y1="6" y2="6"/><line x1="16" x2="16" y1="14" y2="18"/><path d="M16 10h.01"/><path d="M12 10h.01"/><path d="M8 10h.01"/><path d="M12 14h.01"/><path d="M8 14h.01"/><path d="M12 18h.01"/><path d="M8 18h.01"/></IconBase>;
+        const FlaskConical = (p) => <IconBase {...p}><path d="M10 2v7.527a2 2 0 0 1-.211.896L4.72 20.55a1 1 0 0 0 .9 1.45h12.76a1 1 0 0 0 .9-1.45l-5.069-10.127A2 2 0 0 1 14 9.527V2"/><path d="M8.5 2h7"/><path d="M7 16h10"/></IconBase>;
+        const ScrollText = (p) => <IconBase {...p}><path d="M8 21h12a2 2 0 0 0 2-2v-2H10v2a2 2 0 1 1-4 0V5a2 2 0 1 0-4 0v3h4"/><path d="M19 17V5a2 2 0 0 0-2-2H4"/></IconBase>;
+        const TrendingUp = (p) => <IconBase {...p}><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/><polyline points="16 7 22 7 22 13"/></IconBase>;
+        const Landmark = (p) => <IconBase {...p}><line x1="3" x2="21" y1="22" y2="22"/><line x1="6" x2="6" y1="18" y2="11"/><line x1="10" x2="10" y1="18" y2="11"/><line x1="14" x2="14" y1="18" y2="11"/><line x1="18" x2="18" y1="18" y2="11"/><polygon points="12 2 20 7 4 7"/></IconBase>;
+        const Languages = (p) => <IconBase {...p}><path d="m5 8 6 6"/><path d="m4 14 6-6 2-3"/><path d="M2 5h12"/><path d="M7 2h1"/><path d="m22 22-5-10-5 10"/><path d="M14 18h6"/></IconBase>;
+        const Monitor = (p) => <IconBase {...p}><rect width="20" height="14" x="2" y="3" rx="2"/><line x1="8" x2="16" y1="21" y2="21"/><line x1="12" x2="12" y1="17" y2="21"/></IconBase>;
+        const Music = (p) => <IconBase {...p}><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></IconBase>;
+        const Star = (p) => <IconBase {...p}><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></IconBase>;
+        const Sprout = (p) => <IconBase {...p}><path d="M7 20h10"/><path d="M10 20c5.5-2.5.8-6.4 3-10"/><path d="M9.5 9.4c1.1.8 1.8 2.2 2.3 3.7-2 .4-3.5.4-4.8-.3-1.2-.6-2.3-1.9-3-4.2 2.8-.5 4.4 0 5.5.8z"/><path d="M14.1 6a7 7 0 0 0-1.1 4c1.9-.1 3.3-.6 4.3-1.4 1-1 1.6-2.3 1.7-4.6-2.7.1-4 1-4.9 2z"/></IconBase>;
+        const HeartHandshake = (p) => <IconBase {...p}><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/><path d="M12 5 9.04 7.96a2.17 2.17 0 0 0 0 3.08v0c.82.82 2.13.85 3 .07l2.07-1.9a2.82 2.82 0 0 1 3.92 0l2.92 2.92"/></IconBase>;
+        const Database = (p) => <IconBase {...p}><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/></IconBase>;
+        const Newspaper = (p) => <IconBase {...p}><path d="M4 22h16a2 2 0 0 0 2-2V4a2 2 0 0 0-2-2H8a2 2 0 0 0-2 2v16a2 2 0 0 1-2 2Zm0 0a2 2 0 0 1-2-2v-9c0-1.1.9-2 2-2h2"/><path d="M18 14h-8"/><path d="M15 18h-5"/><path d="M10 6h8v4h-8V6Z"/></IconBase>;
+
+
+        // --- データ定義 ---
+
+        const CAREER_PATHS = [
+            {
+                id: 'university',
+                label: '大学進学',
+                icon: <School className="w-6 h-6" />,
+                description: "4年制大学への進学を希望",
+                subOptions: [
+                { 
+                    id: 'uni_science', 
+                    label: '理系', 
+                    icon: <Code className="w-5 h-5" />,
+                    description: "科学技術や数学的分野",
+                    subOptions: [
+                        { id: 'uni_sci_chem', label: '化学系', icon: <FlaskConical className="w-5 h-5" /> },
+                        { id: 'uni_sci_info', label: '情報系', icon: <Monitor className="w-5 h-5" /> },
+                        { id: 'uni_sci_bio', label: '生物・医療系', icon: <Stethoscope className="w-5 h-5" /> },
+                        { id: 'uni_sci_arch', label: '建築系', icon: <Building className="w-5 h-5" /> },
+                        { id: 'uni_sci_math', label: '数学系', icon: <Calculator className="w-5 h-5" /> },
+                        { id: 'uni_sci_other', label: 'その他・未定', icon: <HelpCircle className="w-5 h-5" /> },
+                    ]
+                },
+                { 
+                    id: 'uni_arts', 
+                    label: '文系', 
+                    icon: <BookOpen className="w-5 h-5" />,
+                    description: "人文・社会科学・芸術分野",
+                    subOptions: [
+                        { id: 'uni_art_arts', label: '芸術系', icon: <Palette className="w-5 h-5" /> },
+                        { id: 'uni_art_hist', label: '歴史系', icon: <ScrollText className="w-5 h-5" /> },
+                        { id: 'uni_art_econ', label: '経済系', icon: <TrendingUp className="w-5 h-5" /> },
+                        { id: 'uni_art_mgmt', label: '経営系', icon: <Landmark className="w-5 h-5" /> },
+                        { id: 'uni_art_law', label: '法学・社会学系', icon: <Newspaper className="w-5 h-5" /> },
+                        { id: 'uni_art_lang', label: '語学系', icon: <Languages className="w-5 h-5" /> },
+                        { id: 'uni_art_child', label: '保育・教育系', icon: <Baby className="w-5 h-5" /> },
+                        { id: 'uni_art_welfare', label: '福祉系', icon: <HeartHandshake className="w-5 h-5" /> },
+                        { id: 'uni_art_biz', label: 'ビジネス系', icon: <Briefcase className="w-5 h-5" /> },
+                        { id: 'uni_art_other', label: 'その他・未定', icon: <HelpCircle className="w-5 h-5" /> },
+                    ]
+                },
+                { id: 'uni_undecided', label: '文理未定', icon: <HelpCircle className="w-5 h-5" />, description: "まだ迷っている" },
+                ]
+            },
+            {
+                id: 'vocational',
+                label: '専門学校進学',
+                icon: <Stethoscope className="w-6 h-6" />,
+                description: "職業スキルを身につける",
+                subOptions: [
+                { id: 'voc_nursing', label: '看護・医療系', icon: <Stethoscope className="w-5 h-5" /> },
+                { id: 'voc_sports', label: 'スポーツ系', icon: <Dumbbell className="w-5 h-5" /> },
+                { id: 'voc_animal', label: '動物系', icon: <Dog className="w-5 h-5" /> },
+                { id: 'voc_childcare', label: '保育系', icon: <Baby className="w-5 h-5" /> },
+                { id: 'voc_welfare', label: '介護・福祉系', icon: <HeartHandshake className="w-5 h-5" /> },
+                { id: 'voc_it', label: '情報系', icon: <Code className="w-5 h-5" /> },
+                { id: 'voc_language', label: '語学系', icon: <Globe className="w-5 h-5" /> },
+                { id: 'voc_cooking', label: '調理・食品系', icon: <Utensils className="w-5 h-5" /> },
+                { id: 'voc_fashion', label: '服飾・デザイン系', icon: <Palette className="w-5 h-5" /> },
+                { id: 'voc_other', label: 'その他', icon: <Palette className="w-5 h-5" /> },
+                ]
+            },
+            {
+                id: 'college',
+                label: '短大進学',
+                icon: <GraduationCap className="w-6 h-6" />,
+                description: "短期大学での学び",
+                subOptions: [
+                { id: 'col_childcare', label: '保育系', icon: <Baby className="w-5 h-5" /> },
+                { id: 'col_nutrition', label: '栄養・家政系', icon: <Utensils className="w-5 h-5" /> },
+                { id: 'col_language', label: '語学系', icon: <Globe className="w-5 h-5" /> },
+                { id: 'col_biz', label: 'ビジネス・実務系', icon: <Briefcase className="w-5 h-5" /> },
+                { id: 'col_other', label: 'その他', icon: <School className="w-5 h-5" /> },
+                ]
+            },
+            {
+                id: 'job',
+                label: '就職',
+                icon: <Briefcase className="w-6 h-6" />,
+                description: "高校卒業後に働く",
+            },
+            {
+                id: 'study_abroad',
+                label: '留学',
+                icon: <Globe className="w-6 h-6" />,
+                description: "海外の学校へ",
+            },
+            {
+                id: 'undecided',
+                label: 'まだ決まっていない',
+                icon: <HelpCircle className="w-6 h-6" />,
+                description: "将来を模索中",
+            },
+        ];
+
+        // 結果データ
+        const RESULTS = {
+            // --- 大学・理系 ---
+            uni_sci_chem: {
+                title: "大学 理系（化学系）",
+                color: "bg-blue-100 text-blue-900 border-blue-200",
+                basics: ["化学", "数学(II・B・III)", "物理", "英語"],
+                electives: ["農業と環境", "情報処理", "中国語Ⅰ"],
+                advice: "実験データの分析にPCスキルは必須なので「情報処理」は役立ちます。バイオ系なら「農業と環境」も親和性が高いです。",
+            },
+            uni_sci_info: {
+                title: "大学 理系（情報系）",
+                color: "bg-cyan-100 text-cyan-900 border-cyan-200",
+                basics: ["数学(II・B・III)", "情報", "物理"],
+                electives: ["データベース", "情報処理", "情報デザイン", "工芸Ⅰ"],
+                advice: "文句なしに「データベース」「情報処理」が直結します。UI/UX（使いやすさ）の観点から「情報デザイン」や「工芸」も強力な武器になります。",
+            },
+            uni_sci_bio: {
+                title: "大学 理系（生物・医療系）",
+                color: "bg-teal-100 text-teal-900 border-teal-200",
+                basics: ["生物", "化学", "数学", "英語"],
+                electives: ["倫理", "社会福祉基礎", "農業と環境", "情報処理"],
+                advice: "医療系に進むなら生命倫理（バイオエシックス）に関わる「倫理」と、病院の電子カルテ等を扱うための「情報処理」は意外な盲点ですが重要です。",
+            },
+            uni_sci_arch: {
+                title: "大学 理系（建築系）",
+                color: "bg-orange-100 text-orange-900 border-orange-200",
+                basics: ["数学(II・B・III)", "物理", "英語"],
+                electives: ["素描", "美術Ⅱ", "情報デザイン", "工芸Ⅰ"],
+                advice: "CAD（設計ソフト）を使う上で「情報デザイン」の知識は役立ちます。そして何より「素描」で空間把握能力を鍛えましょう。",
+            },
+            uni_sci_math: {
+                title: "大学 理系（数学系）",
+                color: "bg-indigo-100 text-indigo-900 border-indigo-200",
+                basics: ["数学(全て)", "物理", "英語"],
+                electives: ["情報処理", "データベース", "演奏研究"],
+                advice: "現代数学はコンピュータと密接です。「データベース」や「情報処理」でアルゴリズム的思考に触れておきましょう。",
+            },
+            uni_sci_other: {
+                title: "大学 理系（その他・未定）",
+                color: "bg-blue-50 text-blue-900 border-blue-200",
+                basics: ["数学(II・B)", "理科2科目", "英語"],
+                electives: ["情報処理", "時事問題", "農業と環境"],
+                advice: "理系的な解決能力を社会課題にどう活かすかを知るために「時事問題」は良い刺激になります。",
+            },
+
+            // --- 大学・文系 ---
+            uni_art_arts: {
+                title: "大学 文系（芸術系）",
+                color: "bg-fuchsia-100 text-fuchsia-900 border-fuchsia-200",
+                basics: ["国語", "英語", "世界史"],
+                electives: ["素描", "美術Ⅲ", "演奏研究", "書道Ⅲ", "情報デザイン"],
+                advice: "デジタルアートの需要が高まっているので、実技科目に加えて「情報デザイン」を履修しておくと進路の幅が大きく広がります。",
+            },
+            uni_art_hist: {
+                title: "大学 文系（歴史系）",
+                color: "bg-amber-100 text-amber-900 border-amber-200",
+                basics: ["世界史/日本史", "地理", "古典"],
+                electives: ["日本史研究", "世界史研究", "書道Ⅱ", "倫理"],
+                advice: "「日本史研究」「世界史研究」は必須です。思想史を理解するための「倫理」、古文書解読のための「書道」も完璧な布陣です。",
+            },
+            uni_art_econ: {
+                title: "大学 文系（経済系）",
+                color: "bg-emerald-100 text-emerald-900 border-emerald-200",
+                basics: ["数学(I・A・II・B)", "政治経済", "英語"],
+                electives: ["簿記", "ビジネス基礎", "時事問題", "情報処理"],
+                advice: "大学の経済学部では「簿記」の単位認定があることも。統計データを扱うための「情報処理」も必須スキルです。",
+            },
+            uni_art_mgmt: {
+                title: "大学 文系（経営系）",
+                color: "bg-emerald-50 text-emerald-900 border-emerald-200",
+                basics: ["英語", "政治経済", "数学"],
+                electives: ["ビジネス基礎", "簿記", "情報デザイン", "時事問題"],
+                advice: "マーケティングには「情報デザイン」、会計には「簿記」、企業戦略には「ビジネス基礎」と、これ以上ないほど選択科目が活きる分野です。",
+            },
+            uni_art_law: { 
+                title: "大学 文系（法学・社会学系）",
+                color: "bg-stone-100 text-stone-900 border-stone-200",
+                basics: ["国語", "政治経済", "英語", "日本史"],
+                electives: ["時事問題", "倫理", "社会福祉基礎", "情報処理"],
+                advice: "法律は倫理観の上に成り立っています。「倫理」や、現代社会の課題を知る「時事問題」「社会福祉基礎」が法的思考の土台になります。",
+            },
+            uni_art_lang: {
+                title: "大学 文系（語学系）",
+                color: "bg-rose-100 text-rose-900 border-rose-200",
+                basics: ["英語", "国語", "世界史"],
+                electives: ["時事問題", "世界史研究", "ハングルⅠ", "フランス語Ⅰ"],
+                advice: "翻訳や通訳は、その国の今の情勢を知らないとできません。「時事問題」や「世界史研究」で背景知識を強化しましょう。",
+            },
+            uni_art_child: {
+                title: "大学 文系（保育・教育系）",
+                color: "bg-pink-100 text-pink-900 border-pink-200",
+                basics: ["国語", "家庭科"],
+                electives: ["保育基礎", "幼児教育音楽", "社会福祉基礎", "倫理"],
+                advice: "教育とは人を導くことです。「倫理」で道徳的価値観を、そして「保育基礎」「幼児教育音楽」で実践力を身につけましょう。",
+            },
+            uni_art_welfare: {
+                title: "大学 文系（福祉系）",
+                color: "bg-green-100 text-green-900 border-green-200",
+                basics: ["国語", "家庭科", "公民"],
+                electives: ["社会福祉基礎", "介護福祉基礎", "倫理", "時事問題"],
+                advice: "福祉制度は国の政策と直結するため「時事問題」への感度が重要です。「倫理」で生命の尊厳についても深く考えましょう。",
+            },
+            uni_art_biz: {
+                title: "大学 文系（ビジネス系）",
+                color: "bg-slate-100 text-slate-900 border-slate-200",
+                basics: ["英語", "情報", "政治経済"],
+                electives: ["ビジネス基礎", "簿記", "情報処理", "時事問題"],
+                advice: "「ビジネス基礎」と「簿記」は高校で履修しておくと大学で圧倒的に楽になります。即戦力コースです。",
+            },
+            uni_art_other: {
+                title: "大学 文系（その他・未定）",
+                color: "bg-red-50 text-red-900 border-red-200",
+                basics: ["英語", "国語", "地歴公民"],
+                electives: ["時事問題", "情報処理", "書道Ⅱ"],
+                advice: "どの分野でも通用する「情報処理」と、小論文対策にもなる「時事問題」は取っておいて損はありません。",
+            },
+
+            // --- 大学・未定 ---
+            uni_undecided: {
+                title: "大学進学（文理未定）",
+                color: "bg-purple-100 text-purple-900 border-purple-200",
+                basics: ["英語", "数学(I・A・II)", "国語"],
+                electives: ["情報処理", "時事問題", "簿記"],
+                advice: "「情報処理」や「簿記」は資格取得にも繋がり、進路が決まった後にどんな分野でも武器になる汎用性の高いスキルです。",
+            },
             
-            {/* 必須・基礎科目セクション */}
-            <div className="mb-6 p-4 border-b border-gray-100">
-              <h3 className="flex items-center gap-2 font-bold text-gray-800 mb-3 text-lg">
-                <CheckCircle className="w-5 h-5 text-indigo-500" /> 基礎・必須科目
-              </h3>
-              <div className="flex flex-wrap gap-2">
-                {result.basics.map((subject, i) => (
-                  <span key={i} className="px-3 py-1.5 bg-gray-100 text-gray-600 rounded-lg font-medium text-sm border border-gray-200">
-                    {subject}
-                  </span>
-                ))}
-              </div>
-            </div>
+            // --- 専門学校 ---
+            voc_nursing: {
+                title: "専門学校（看護・医療系）",
+                color: "bg-teal-100 text-teal-900 border-teal-200",
+                basics: ["生物基礎・生物", "数学I・A", "現代文"],
+                electives: ["倫理", "情報処理", "介護福祉基礎", "社会福祉基礎"],
+                advice: "医療現場のIT化に伴い「情報処理」能力が求められています。また、患者さんの命に向き合うための「倫理」も非常に重要です。",
+            },
+            voc_sports: {
+                title: "専門学校（スポーツ系）",
+                color: "bg-orange-100 text-orange-900 border-orange-200",
+                basics: ["体育", "生物基礎", "保健"],
+                electives: ["スポーツトレーナー学入門", "スポーツⅡ", "ビジネス基礎"],
+                advice: "将来ジムの経営やフリーランスを考えるなら「ビジネス基礎」が役立ちます。体だけでなく経営感覚も養いましょう。",
+            },
+            voc_animal: {
+                title: "専門学校（動物系）",
+                color: "bg-amber-100 text-amber-900 border-amber-200",
+                basics: ["生物", "化学基礎", "家庭科"],
+                electives: ["農業と環境", "ビジネス基礎", "素描"],
+                advice: "ペットショップやサロン勤務を見据え、接客や店舗運営の基礎として「ビジネス基礎」をおすすめします。",
+            },
+            voc_childcare: {
+                title: "専門学校（保育系）",
+                color: "bg-pink-100 text-pink-900 border-pink-200",
+                basics: ["国語", "家庭科"],
+                electives: ["保育基礎", "幼児教育音楽", "服飾手芸", "情報デザイン"],
+                advice: "おたより作成や掲示物作りのために「情報デザイン」のスキルがあると、現場で重宝される「DX対応できる保育士」になれます。",
+            },
+            voc_welfare: {
+                title: "専門学校（介護・福祉系）",
+                color: "bg-green-100 text-green-900 border-green-200",
+                basics: ["国語", "家庭科", "公民"],
+                electives: ["介護福祉基礎", "社会福祉基礎", "倫理", "情報処理"],
+                advice: "ケアプラン作成や記録業務でPCは必須です。「情報処理」を学んでおきましょう。「倫理」はケアの根幹です。",
+            },
+            voc_it: {
+                title: "専門学校（情報系）",
+                color: "bg-cyan-100 text-cyan-900 border-cyan-200",
+                basics: ["情報", "数学", "英語"],
+                electives: ["データベース", "情報処理", "情報デザイン", "ビジネス基礎"],
+                advice: "「データベース」はシステム開発の要です。「ビジネス基礎」で企業の業務フローを知っておくと、使えるシステムが作れるようになります。",
+            },
+            voc_language: {
+                title: "専門学校（語学系）",
+                color: "bg-indigo-100 text-indigo-900 border-indigo-200",
+                basics: ["英語", "国語", "世界史"],
+                electives: ["ハングルⅠ", "中国語Ⅰ", "情報処理", "ビジネス基礎"],
+                advice: "語学力×ITスキル×ビジネス知識＝最強です。「情報処理」と「ビジネス基礎」を組み合わせると就職率が跳ね上がります。",
+            },
+            voc_cooking: {
+                title: "専門学校（調理・食品系）",
+                color: "bg-yellow-100 text-yellow-900 border-yellow-200",
+                basics: ["家庭科", "化学基礎"],
+                electives: ["フードデザイン", "ビジネス基礎", "簿記"],
+                advice: "将来自分の店を持ちたいなら「簿記」と「ビジネス基礎」は必須です。料理の腕と同じくらい、原価計算や経営の知識が大切です。",
+            },
+            voc_fashion: {
+                title: "専門学校（服飾・デザイン系）",
+                color: "bg-violet-100 text-violet-900 border-violet-200",
+                basics: ["家庭科", "美術"],
+                electives: ["情報デザイン", "服飾手芸", "素描", "ビジネス基礎"],
+                advice: "現代のデザインはデジタルが主流。「情報デザイン」は必須です。自分のブランドを持つ夢があるなら「ビジネス基礎」も。",
+            },
+            voc_other: {
+                title: "専門学校（その他）",
+                color: "bg-gray-100 text-gray-900 border-gray-200",
+                basics: ["総合的な探究", "英語"],
+                electives: ["ビジネス基礎", "情報処理", "書道Ⅱ"],
+                advice: "社会人としての基礎体力となる「ビジネス基礎」と「情報処理」を選べば間違いありません。",
+            },
 
-            {/* おすすめ選択科目セクション */}
-            <div className="mb-6 p-4 bg-yellow-50/50 rounded-xl relative overflow-hidden">
-              <div className="absolute top-0 right-0 p-2 opacity-10">
-                 <Star className="w-24 h-24 text-yellow-500" />
-              </div>
-              <h3 className="flex items-center gap-2 font-bold text-gray-800 mb-3 text-lg relative z-10">
-                <Star className="w-5 h-5 text-yellow-500 fill-yellow-500" /> 優先度の高い選択科目
-              </h3>
-              <div className="flex flex-wrap gap-2 relative z-10">
-                {result.electives.map((subject, i) => (
-                  <span key={i} className="px-3 py-1.5 bg-white text-gray-900 rounded-lg font-bold text-sm border border-yellow-300 shadow-sm flex items-center">
-                    {subject}
-                  </span>
-                ))}
-              </div>
-              <p className="text-xs text-gray-500 mt-2 relative z-10">※あなたの進路で強みになる科目を厳選しました</p>
-            </div>
-  
-            <div className="bg-indigo-50 rounded-xl p-5 border border-indigo-100">
-              <h3 className="font-bold text-indigo-900 mb-2 flex items-center gap-2">
-                <BookOpen className="w-4 h-4" /> アドバイス
-              </h3>
-              <p className="text-indigo-800 text-sm leading-relaxed">
-                {result.advice}
-              </p>
-            </div>
-          </div>
-  
-          <div className="flex gap-3">
-             <button
-              onClick={() => setFinalResult(null)}
-              className="flex-1 py-4 bg-white text-gray-700 font-bold rounded-xl shadow border border-gray-200 hover:bg-gray-50 flex items-center justify-center gap-2 transition-transform active:scale-95"
-            >
-              <ArrowLeft className="w-5 h-5" /> ひとつ戻る
-            </button>
-            <button
-              onClick={resetApp}
-              className="flex-1 py-4 bg-gray-900 text-white font-bold rounded-xl shadow-lg hover:bg-gray-800 flex items-center justify-center gap-2 transition-transform active:scale-95"
-            >
-              最初から <ArrowRight className="w-5 h-5" />
-            </button>
-          </div>
-        </div>
-      </div>
-    );
-  }
+            // --- 短大 ---
+            col_childcare: {
+                title: "短大（保育系）",
+                color: "bg-pink-100 text-pink-900 border-pink-200",
+                basics: ["国語", "英語", "家庭科"],
+                electives: ["保育基礎", "幼児教育音楽", "情報デザイン"],
+                advice: "短期間で即戦力になるため、ピアノ（幼児教育音楽）に加え、園だより作成などに役立つ「情報デザイン」がおすすめです。",
+            },
+            col_nutrition: {
+                title: "短大（栄養・家政系）",
+                color: "bg-orange-50 text-orange-900 border-orange-200",
+                basics: ["化学基礎", "生物基礎", "家庭科"],
+                electives: ["フードデザイン", "情報処理", "データベース"],
+                advice: "栄養管理はデータ管理です。献立作成や栄養価計算のために「データベース」や「情報処理」の知識があると非常にスムーズです。",
+            },
+            col_language: {
+                title: "短大（語学系）",
+                color: "bg-indigo-100 text-indigo-900 border-indigo-200",
+                basics: ["英語", "国語", "世界史"],
+                electives: ["ハングルⅠ", "ビジネス基礎", "情報処理"],
+                advice: "短大卒業後の就職を見据え、語学に加えて事務職スキルの「ビジネス基礎」「情報処理」をセットで履修しましょう。",
+            },
+            col_biz: {
+                title: "短大（ビジネス・実務系）",
+                color: "bg-slate-200 text-slate-900 border-slate-300",
+                basics: ["英語", "国語", "情報"],
+                electives: ["簿記", "ビジネス基礎", "情報処理", "データベース"],
+                advice: "事務職や秘書を目指すならこの4つが鉄板です。高校のうちに資格を取っておくと短大での学びがより高度になります。",
+            },
+            col_other: {
+                title: "短大（その他）",
+                color: "bg-gray-100 text-gray-900 border-gray-200",
+                basics: ["国語", "英語", "社会"],
+                electives: ["ビジネス基礎", "情報処理", "書道Ⅱ"],
+                advice: "「ビジネス基礎」と「情報処理」は、どんな職種に就くとしてもあなたの助けになります。",
+            },
 
-  return (
-    <div className="min-h-screen bg-gray-50 flex items-center justify-center font-sans p-4">
-      <div className="w-full max-w-md">
-        
-        <div className="mb-6">
-           {history.length > 0 ? (
-             <div className="flex items-center mb-4">
-                <button 
-                  onClick={handleBack}
-                  className="mr-3 p-2 rounded-full bg-white border border-gray-200 text-gray-500 hover:bg-gray-100 transition-colors"
-                >
-                  <ArrowLeft className="w-4 h-4" />
-                </button>
-                <div className="flex items-center text-sm font-semibold text-gray-400 overflow-hidden whitespace-nowrap">
-                   {breadcrumbs.map((crumb, index) => (
-                     <React.Fragment key={index}>
-                       {index > 0 && <ArrowRight className="w-3 h-3 mx-1 flex-shrink-0" />}
-                       <span className={index === breadcrumbs.length - 1 ? "text-indigo-600 font-bold" : ""}>
-                         {crumb}
-                       </span>
-                     </React.Fragment>
-                   ))}
+            // --- その他直結ルート ---
+            job: {
+                title: "就職",
+                color: "bg-emerald-100 text-emerald-900 border-emerald-200",
+                basics: ["国語（作文・敬語）", "数学（SPI対策）", "情報"],
+                electives: ["ビジネス基礎", "簿記", "情報処理", "時事問題"],
+                advice: "社会人のマナーとルールを学ぶ「ビジネス基礎」、お金の流れを知る「簿記」、PCスキルの「情報処理」。これらは就職活動での強力なアピール材料になります。",
+            },
+            study_abroad: {
+                title: "留学",
+                color: "bg-sky-100 text-sky-900 border-sky-200",
+                basics: ["英語（4技能）", "日本史/国語"],
+                electives: ["日本史研究", "書道Ⅱ", "時事問題", "情報デザイン"],
+                advice: "海外で日本について語るため「日本史研究」は必須。また、プレゼン資料作成のために「情報デザイン」のスキルがあると海外の大学でも役立ちます。",
+            },
+            undecided: {
+                title: "まだ決まっていない",
+                color: "bg-slate-100 text-slate-900 border-slate-200",
+                basics: ["英語", "数学", "国語"],
+                electives: ["情報処理", "ビジネス基礎", "時事問題", "フードデザイン"],
+                advice: "迷ったら「生きる力（フードデザイン）」と「働く力（ビジネス基礎・情報処理）」を身につけておきましょう。これらは決して裏切りません。",
+            },
+        };
+
+        function App() {
+            const [history, setHistory] = useState([]);
+            const [finalResult, setFinalResult] = useState(null);
+
+            const getCurrentOptions = () => {
+                if (history.length === 0) {
+                    return CAREER_PATHS;
+                }
+                
+                let currentLevel = CAREER_PATHS;
+                for (const id of history) {
+                    const found = currentLevel.find(opt => opt.id === id);
+                    if (found && found.subOptions) {
+                        currentLevel = found.subOptions;
+                    } else {
+                        return [];
+                    }
+                }
+                return currentLevel;
+            };
+
+            const handleSelect = (option) => {
+                if (option.subOptions && option.subOptions.length > 0) {
+                    setHistory([...history, option.id]);
+                } else {
+                    setFinalResult(option.id);
+                }
+            };
+
+            const handleBack = () => {
+                if (finalResult) {
+                    setFinalResult(null);
+                } else {
+                    setHistory(history.slice(0, -1));
+                }
+            };
+
+            const resetApp = () => {
+                setHistory([]);
+                setFinalResult(null);
+            };
+
+            const getBreadcrumbs = () => {
+                let crumbs = [];
+                let currentLevel = CAREER_PATHS;
+                
+                for (const id of history) {
+                    const found = currentLevel.find(opt => opt.id === id);
+                    if (found) {
+                        crumbs.push(found.label);
+                        if (found.subOptions) currentLevel = found.subOptions;
+                    }
+                }
+                return crumbs;
+            };
+
+            const currentOptions = getCurrentOptions();
+            const breadcrumbs = getBreadcrumbs();
+
+            if (finalResult) {
+                const result = RESULTS[finalResult];
+                if (!result) return <div className="p-8 text-center text-red-500">エラー: データが見つかりません ({finalResult})</div>;
+
+                return (
+                    <div className="min-h-screen flex items-center justify-center font-sans p-4">
+                        <div className="w-full max-w-md animate-in zoom-in duration-300">
+                            <div className={`rounded-t-3xl p-6 ${result.color} border-b-2 shadow-sm`}>
+                                <div className="flex justify-between items-start mb-2">
+                                    <span className="bg-white/60 backdrop-blur-sm px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider shadow-sm">
+                                        診断結果
+                                    </span>
+                                </div>
+                                <h2 className="text-2xl font-bold mt-2">{result.title}</h2>
+                            </div>
+                    
+                            <div className="bg-white rounded-b-3xl shadow-xl p-6 mb-6 overflow-hidden">
+                                
+                                {/* 必須・基礎科目セクション */}
+                                <div className="mb-6 p-4 border-b border-gray-100">
+                                    <h3 className="flex items-center gap-2 font-bold text-gray-800 mb-3 text-lg">
+                                        <CheckCircle className="w-5 h-5 text-indigo-500" /> 基礎・必須科目
+                                    </h3>
+                                    <div className="flex flex-wrap gap-2">
+                                        {result.basics.map((subject, i) => (
+                                            <span key={i} className="px-3 py-1.5 bg-gray-100 text-gray-600 rounded-lg font-medium text-sm border border-gray-200">
+                                                {subject}
+                                            </span>
+                                        ))}
+                                    </div>
+                                </div>
+
+                                {/* おすすめ選択科目セクション */}
+                                <div className="mb-6 p-4 bg-yellow-50/50 rounded-xl relative overflow-hidden">
+                                    <div className="absolute top-0 right-0 p-2 opacity-10">
+                                        <Star className="w-24 h-24 text-yellow-500" />
+                                    </div>
+                                    <h3 className="flex items-center gap-2 font-bold text-gray-800 mb-3 text-lg relative z-10">
+                                        <Star className="w-5 h-5 text-yellow-500 fill-yellow-500" /> 優先度の高い選択科目
+                                    </h3>
+                                    <div className="flex flex-wrap gap-2 relative z-10">
+                                        {result.electives.map((subject, i) => (
+                                            <span key={i} className="px-3 py-1.5 bg-white text-gray-900 rounded-lg font-bold text-sm border border-yellow-300 shadow-sm flex items-center">
+                                                {subject}
+                                            </span>
+                                        ))}
+                                    </div>
+                                    <p className="text-xs text-gray-500 mt-2 relative z-10">※あなたの進路で強みになる科目を厳選しました</p>
+                                </div>
+                    
+                                <div className="bg-indigo-50 rounded-xl p-5 border border-indigo-100">
+                                    <h3 className="font-bold text-indigo-900 mb-2 flex items-center gap-2">
+                                        <BookOpen className="w-4 h-4" /> アドバイス
+                                    </h3>
+                                    <p className="text-indigo-800 text-sm leading-relaxed">
+                                        {result.advice}
+                                    </p>
+                                </div>
+                            </div>
+                    
+                            <div className="flex gap-3">
+                                <button
+                                    onClick={() => setFinalResult(null)}
+                                    className="flex-1 py-4 bg-white text-gray-700 font-bold rounded-xl shadow border border-gray-200 hover:bg-gray-50 flex items-center justify-center gap-2 transition-transform active:scale-95"
+                                >
+                                    <ArrowLeft className="w-5 h-5" /> ひとつ戻る
+                                </button>
+                                <button
+                                    onClick={resetApp}
+                                    className="flex-1 py-4 bg-gray-900 text-white font-bold rounded-xl shadow-lg hover:bg-gray-800 flex items-center justify-center gap-2 transition-transform active:scale-95"
+                                >
+                                    最初から <ArrowRight className="w-5 h-5" />
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                );
+            }
+
+            // 選択画面
+            return (
+                <div className="min-h-screen flex items-center justify-center font-sans p-4">
+                    <div className="w-full max-w-md">
+                        
+                        {/* ヘッダーエリア */}
+                        <div className="mb-6">
+                            {history.length > 0 ? (
+                                <div className="flex items-center mb-4">
+                                    <button 
+                                        onClick={handleBack}
+                                        className="mr-3 p-2 rounded-full bg-white border border-gray-200 text-gray-500 hover:bg-gray-100 transition-colors"
+                                    >
+                                        <ArrowLeft className="w-4 h-4" />
+                                    </button>
+                                    <div className="flex items-center text-sm font-semibold text-gray-400 overflow-hidden whitespace-nowrap">
+                                        {breadcrumbs.map((crumb, index) => (
+                                            <React.Fragment key={index}>
+                                                {index > 0 && <ArrowRight className="w-3 h-3 mx-1 flex-shrink-0" />}
+                                                <span className={index === breadcrumbs.length - 1 ? "text-indigo-600 font-bold" : ""}>
+                                                    {crumb}
+                                                </span>
+                                            </React.Fragment>
+                                        ))}
+                                    </div>
+                                </div>
+                            ) : (
+                                <div className="text-center mb-8">
+                                    <div className="inline-flex items-center justify-center w-16 h-16 bg-white rounded-2xl shadow-md mb-4 text-indigo-600">
+                                        <School size={32} />
+                                    </div>
+                                    <h1 className="text-2xl font-bold text-gray-900">選択科目ナビ</h1>
+                                    <p className="text-xs text-gray-400 mt-1">あなたの進路に最適な科目を提案します</p>
+                                </div>
+                            )}
+
+                            <h2 className="text-xl font-bold text-gray-800 px-1">
+                                {history.length === 0 ? "卒業後の進路は？" : 
+                                history.length === 1 && breadcrumbs[0].includes("大学") ? "文系・理系どちらですか？" :
+                                "具体的にどの分野に興味がありますか？"}
+                            </h2>
+                        </div>
+                        
+                        {/* 選択肢リスト */}
+                        <div className="grid grid-cols-1 gap-3 animate-in fade-in slide-in-from-right-4 duration-300">
+                            {currentOptions.map((opt) => (
+                                <button
+                                    key={opt.id}
+                                    onClick={() => handleSelect(opt)}
+                                    className="flex items-center p-4 bg-white hover:bg-indigo-50 border border-gray-200 hover:border-indigo-300 rounded-xl transition-all shadow-sm group text-left"
+                                >
+                                    <div className={`p-3 rounded-full mr-4 bg-gray-50 text-gray-500 group-hover:bg-indigo-100 group-hover:text-indigo-600 transition-colors`}>
+                                        {opt.icon || <School className="w-5 h-5" />}
+                                    </div>
+                                    <div className="flex-1">
+                                        <div className="font-bold text-gray-800 group-hover:text-indigo-900">{opt.label}</div>
+                                        {opt.description && (
+                                            <div className="text-xs text-gray-500 mt-0.5">{opt.description}</div>
+                                        )}
+                                    </div>
+                                    <ArrowRight className="text-gray-300 group-hover:text-indigo-400 w-5 h-5" />
+                                </button>
+                            ))}
+                        </div>
+                    </div>
                 </div>
-             </div>
-           ) : (
-             <div className="text-center mb-8">
-               <div className="inline-flex items-center justify-center w-16 h-16 bg-white rounded-2xl shadow-md mb-4 text-indigo-600">
-                  <School size={32} />
-               </div>
-               <h1 className="text-2xl font-bold text-gray-900">選択科目ナビ</h1>
-               <p className="text-xs text-gray-400 mt-1">あなたの進路に最適な科目を提案します</p>
-             </div>
-           )}
+            );
+        }
 
-           <h2 className="text-xl font-bold text-gray-800 px-1">
-             {history.length === 0 ? "卒業後の進路は？" : 
-              history.length === 1 && breadcrumbs[0].includes("大学") ? "文系・理系どちらですか？" :
-              "具体的にどの分野に興味がありますか？"}
-           </h2>
-        </div>
-        
-        <div className="grid grid-cols-1 gap-3 animate-in fade-in slide-in-from-right-4 duration-300">
-          {currentOptions.map((opt) => (
-            <button
-              key={opt.id}
-              onClick={() => handleSelect(opt)}
-              className="flex items-center p-4 bg-white hover:bg-indigo-50 border border-gray-200 hover:border-indigo-300 rounded-xl transition-all shadow-sm group text-left"
-            >
-              <div className={`p-3 rounded-full mr-4 bg-gray-50 text-gray-500 group-hover:bg-indigo-100 group-hover:text-indigo-600 transition-colors`}>
-                {opt.icon || <School className="w-5 h-5" />}
-              </div>
-              <div className="flex-1">
-                <div className="font-bold text-gray-800 group-hover:text-indigo-900">{opt.label}</div>
-                {opt.description && (
-                  <div className="text-xs text-gray-500 mt-0.5">{opt.description}</div>
-                )}
-              </div>
-              <ArrowRight className="text-gray-300 group-hover:text-indigo-400 w-5 h-5" />
-            </button>
-          ))}
-        </div>
-      </div>
-    </div>
-  );
-}
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
+    </script>
+</body>
+</html>
+
 
